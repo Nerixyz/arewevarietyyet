@@ -1,9 +1,14 @@
-use std::sync::Arc;
-use std::time::{Duration, Instant};
-use actix::{Actor, ActorFutureExt, Context, Handler, Message, ResponseActFuture, WrapFuture};
-use actix::fut::ready;
-use crate::model::StreamerModel;
-use crate::sullygnome::{GamesResponse, self};
+use crate::{
+    model::StreamerModel,
+    sullygnome::{self, GamesResponse},
+};
+use actix::{
+    fut::ready, Actor, ActorFutureExt, Context, Handler, Message, ResponseActFuture, WrapFuture,
+};
+use std::{
+    sync::Arc,
+    time::{Duration, Instant},
+};
 
 const CACHE_TIME: Duration = Duration::from_secs(10 * 60);
 
@@ -13,16 +18,17 @@ pub struct DataActor {
 }
 
 impl DataActor {
-    fn put_response(&mut self, response: anyhow::Result<GamesResponse>) -> <GetData as Message>::Result {
+    fn put_response(
+        &mut self,
+        response: anyhow::Result<GamesResponse>,
+    ) -> <GetData as Message>::Result {
         match response {
             Ok(res) => {
                 let model = Arc::new(res.try_into()?);
                 self.model = Some((Instant::now(), Arc::clone(&model)));
                 Ok(model)
-            },
-            Err(e) => {
-                Err(e.into())
             }
+            Err(e) => Err(e.into()),
         }
     }
 
@@ -52,7 +58,11 @@ impl Handler<GetData> for DataActor {
     fn handle(&mut self, _: GetData, _: &mut Self::Context) -> Self::Result {
         match self.try_get_cached() {
             Some(cached) => Box::pin(ready(cached)),
-            None => Box::pin(sullygnome::request().into_actor(self).map(|res, this, _| (this.put_response(res)))),
+            None => Box::pin(
+                sullygnome::request()
+                    .into_actor(self)
+                    .map(|res, this, _| (this.put_response(res))),
+            ),
         }
     }
 }
