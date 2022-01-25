@@ -6,6 +6,6 @@ Tracks if [m0xyy](https://twitch.tv/m0xyy) has streamed more variety than Overwa
 
 ## Setup
 
-Clone the repo and run `cargo build --production` or `cargo run --production`.
+Clone the repo and run `cargo build --release` or `cargo run --release`.
 
 The local webserver is hosted at `localhost:8934`.
