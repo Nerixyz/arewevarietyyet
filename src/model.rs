@@ -6,20 +6,33 @@ use crate::sullygnome;
 use crate::sullygnome::{GameData, GamesResponse};
 
 lazy_static! {
-    static ref GAME_REGEX: Regex = Regex::new("^([^|]+)\\|(:?[^|]+)\\|(.+)$").unwrap();
+    static ref GAME_REGEX: Regex = Regex::new("^([^|]+)\\|(?:[^|]+)\\|(.+)$").unwrap();
 }
 
 #[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct StreamerModel {
-    pub games: Vec<GameModel>
+    pub games: Vec<GameModel>,
+    pub total_time_min: u64,
+    pub variety_percent: f64,
+    pub ow_percent: f64,
+    pub are_we_variety: bool,
 }
 
 impl TryFrom<sullygnome::GamesResponse> for StreamerModel {
     type Error = anyhow::Error;
 
     fn try_from(value: GamesResponse) -> Result<Self, Self::Error> {
+        let (total_time_sec, ow_time) = value.data.iter()
+            .fold((0, 0), |(total, ow), item|
+                (total + item.streamtime, ow + if item.gamesplayed.starts_with("Overwatch") { item.streamtime } else { 0 }));
+        let ow_percent = ow_time as f64 / total_time_sec as f64;
         Ok(Self {
-            games: value.data.try_into()?,
+            games: value.data.into_iter().map(GameModel::try_from).collect::<Result<Vec<_>, Self::Error>>()?,
+            total_time_min: total_time_sec,
+            ow_percent,
+            variety_percent: 1.0 - ow_percent,
+            are_we_variety: ow_percent < 0.5,
         })
     }
 }
@@ -27,7 +40,7 @@ impl TryFrom<sullygnome::GamesResponse> for StreamerModel {
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct GameModel {
-    pub time_streamed_sec: u64,
+    pub time_streamed_min: u64,
     pub category: String,
     pub category_image: String,
 }
@@ -40,7 +53,7 @@ impl TryFrom<sullygnome::GameData> for GameModel {
         Ok(Self {
             category,
             category_image,
-            time_streamed_sec: value.streamtime,
+            time_streamed_min: value.streamtime,
         })
     }
 }

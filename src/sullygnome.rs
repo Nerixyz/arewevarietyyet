@@ -29,7 +29,5 @@ pub struct GameData {
 const REQUEST_URL: &str = "https://sullygnome.com/api/tables/channeltables/games/2022/3505649/%20/1/2/desc/0/1000";
 
 pub async fn request() -> AnyResult<GamesResponse> {
-    Ok(SULLYGNOME_CLIENT.get(REQUEST_URL).send().await?.json()?)
+    Ok(SULLYGNOME_CLIENT.get(REQUEST_URL).send().await?.json().await?)
 }
-
-pub fn
