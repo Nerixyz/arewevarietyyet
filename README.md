@@ -1,4 +1,4 @@
-# AreWeVarietyYet
+# [AreWeVarietyYet.nerixyz.de](https://arewevarietyyet.nerixyz.de/)
 
 Tracks if [m0xyy](https://twitch.tv/m0xyy) has streamed more variety than Overwatch.
 
