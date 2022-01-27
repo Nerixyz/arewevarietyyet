@@ -72,6 +72,7 @@ main {
 .distribution {
     width: 40vw;
     display: flex;
+    margin-bottom: 3rem;
 }
 
 @media (max-aspect-ratio: 1/1) {
@@ -81,7 +82,7 @@ main {
 }
 
 .clip {
-    margin-top: 3rem;
+    margin-top: 1rem;
     display: flex;
     justify-content: center;
 }
@@ -92,12 +93,17 @@ main {
     margin-right: 0.75rem;
 }
 
-.clip-link {
+.redacted {
+    text-decoration: line-through;
+}
+
+a {
     color: var(--red600);
 }
 
 .clip-link >img {
-    height: 1.1rem;
+    height: 1.2rem;
+    margin-right: 0.2rem;
 }
 
 .category {
