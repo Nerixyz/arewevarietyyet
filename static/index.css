@@ -152,6 +152,10 @@ footer {
     margin-top: 10rem;
 }
 
+.credits {
+    font-size: 0.75rem;
+}
+
 .github-icon {
     width: 3rem;
     color: var(--slate400);
