@@ -2,7 +2,13 @@
 
 Tracks if [m0xyy](https://twitch.tv/m0xyy) has streamed more variety than Overwatch.
 
-![Image](https://i.imgur.com/jiH1yw6.png)
+<details>
+<summary>Images</summary>
+
+![No](https://i.imgur.com/9T7vOpV.png)
+![Yes](https://i.imgur.com/K3WUY9I.png)
+
+</details>
 
 ## Setup
 
