@@ -36,6 +36,7 @@ impl TryFrom<sullygnome::GamesResponse> for StreamerModel {
             )
         });
         let ow_percent = ow_time as f64 / total_time_sec as f64;
+        let variety_percent = 1.0 - ow_percent;
         Ok(Self {
             games: value
                 .data
@@ -44,8 +45,8 @@ impl TryFrom<sullygnome::GamesResponse> for StreamerModel {
                 .collect::<Result<Vec<_>, Self::Error>>()?,
             total_time_min: total_time_sec,
             ow_percent,
-            variety_percent: 1.0 - ow_percent,
-            are_we_variety: ow_percent < 0.5,
+            variety_percent,
+            are_we_variety: variety_percent >= 0.3,
         })
     }
 }
