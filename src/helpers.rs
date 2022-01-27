@@ -34,3 +34,18 @@ pub fn humanize_min(
     out.write(&humantime::format_duration(Duration::from_secs(minutes * 60)).to_string())?;
     Ok(())
 }
+
+pub fn rounded_percent(
+    h: &Helper,
+    _: &Handlebars,
+    _: &Context,
+    _: &mut RenderContext,
+    out: &mut dyn Output,
+) -> HelperResult {
+    let percent = h
+        .param(0)
+        .and_then(|p| p.value().as_f64())
+        .ok_or_else(|| RenderError::new("Expected minutes"))?;
+    out.write(&format!("{}", (percent * 100.0).round()))?;
+    Ok(())
+}

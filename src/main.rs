@@ -37,6 +37,7 @@ async fn main() -> io::Result<()> {
         .unwrap();
     handlebars.register_helper("bar-width", Box::new(helpers::bar_width));
     handlebars.register_helper("humanize-min", Box::new(helpers::humanize_min));
+    handlebars.register_helper("round-percent", Box::new(helpers::rounded_percent));
     let handlebars = web::Data::new(handlebars);
 
     HttpServer::new(move || {
