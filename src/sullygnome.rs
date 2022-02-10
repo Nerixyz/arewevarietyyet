@@ -11,7 +11,7 @@ lazy_static! {
         let mut headers = HeaderMap::new();
         headers.insert(
             header::USER_AGENT,
-            HeaderValue::from_static("arewevarietyyet/0.1"),
+            HeaderValue::from_static("arewevarietyyet/0.1 - github.com/nerixyz/arewevarietyyet"),
         );
 
         Client::builder().default_headers(headers).build().unwrap()
