@@ -68,11 +68,19 @@ h4 {
     text-align: center;
 }
 
+.less-important {
+    color: var(--slate400);
+}
+
 main {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-content: center;
+}
+
+.ditch-stats {
+    margin-top: 3rem;
 }
 
 .distribution {
@@ -155,7 +163,7 @@ footer {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 10rem;
+    margin-top: 8rem;
 }
 
 .credits {

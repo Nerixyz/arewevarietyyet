@@ -1,10 +1,8 @@
-use crate::{
-    model::StreamerModel,
-    sullygnome::{self, GamesResponse},
-};
+use crate::{model::StreamerModel, sullygnome};
 use actix::{
     fut::ready, Actor, ActorFutureExt, Context, Handler, Message, ResponseActFuture, WrapFuture,
 };
+use futures::future;
 use std::{
     sync::Arc,
     time::{Duration, Instant},
@@ -20,7 +18,7 @@ pub struct DataActor {
 impl DataActor {
     fn put_response(
         &mut self,
-        response: anyhow::Result<GamesResponse>,
+        response: anyhow::Result<(sullygnome::GamesResponse, sullygnome::StreamsResponse)>,
     ) -> <GetData as Message>::Result {
         match response {
             Ok(res) => {
@@ -59,7 +57,7 @@ impl Handler<GetData> for DataActor {
         match self.try_get_cached() {
             Some(cached) => Box::pin(ready(cached)),
             None => Box::pin(
-                sullygnome::request()
+                future::try_join(sullygnome::get_games(), sullygnome::get_streams())
                     .into_actor(self)
                     .map(|res, this, _| (this.put_response(res))),
             ),

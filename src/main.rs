@@ -8,6 +8,7 @@ use std::io;
 mod data_actor;
 mod helpers;
 mod model;
+mod streamcounter;
 mod sullygnome;
 
 async fn index(

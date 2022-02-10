@@ -1,4 +1,5 @@
 use anyhow::Result as AnyResult;
+use chrono::{DateTime, Utc};
 use lazy_static::lazy_static;
 use reqwest::{
     header::{self, HeaderMap, HeaderValue},
@@ -31,12 +32,37 @@ pub struct GameData {
     pub gamesplayed: String,
 }
 
-const REQUEST_URL: &str =
+#[derive(Deserialize, Debug)]
+#[non_exhaustive]
+pub struct StreamsResponse {
+    pub data: Vec<StreamData>,
+}
+
+#[derive(Deserialize, Debug)]
+#[non_exhaustive]
+#[serde(rename_all = "camelCase")]
+pub struct StreamData {
+    pub start_date_time: DateTime<Utc>,
+}
+
+const GAMES_REQUEST_URL: &str =
     "https://sullygnome.com/api/tables/channeltables/games/2022/3505649/%20/1/2/desc/0/1000";
 
-pub async fn request() -> AnyResult<GamesResponse> {
+const STREAMS_REQUEST_URL: &str =
+    "https://sullygnome.com/api/tables/channeltables/streams/2022/3505649/%20/1/1/desc/0/1000";
+
+pub async fn get_games() -> AnyResult<GamesResponse> {
     Ok(SULLYGNOME_CLIENT
-        .get(REQUEST_URL)
+        .get(GAMES_REQUEST_URL)
+        .send()
+        .await?
+        .json()
+        .await?)
+}
+
+pub async fn get_streams() -> AnyResult<StreamsResponse> {
+    Ok(SULLYGNOME_CLIENT
+        .get(STREAMS_REQUEST_URL)
         .send()
         .await?
         .json()

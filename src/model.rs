@@ -1,7 +1,4 @@
-use crate::{
-    sullygnome,
-    sullygnome::{GameData, GamesResponse},
-};
+use crate::{streamcounter, sullygnome};
 use anyhow::anyhow;
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -19,13 +16,19 @@ pub struct StreamerModel {
     pub variety_percent: f64,
     pub ow_percent: f64,
     pub are_we_variety: bool,
+
+    pub days_ditched: usize,
+    pub days_until_now: usize,
+    pub percent_ditched: f64,
 }
 
-impl TryFrom<sullygnome::GamesResponse> for StreamerModel {
+impl TryFrom<(sullygnome::GamesResponse, sullygnome::StreamsResponse)> for StreamerModel {
     type Error = anyhow::Error;
 
-    fn try_from(value: GamesResponse) -> Result<Self, Self::Error> {
-        let (total_time_sec, ow_time) = value.data.iter().fold((0, 0), |(total, ow), item| {
+    fn try_from(
+        (games, streams): (sullygnome::GamesResponse, sullygnome::StreamsResponse),
+    ) -> Result<Self, Self::Error> {
+        let (total_time_sec, ow_time) = games.data.iter().fold((0, 0), |(total, ow), item| {
             (
                 total + item.streamtime,
                 ow + if item.gamesplayed.starts_with("Overwatch") {
@@ -37,8 +40,12 @@ impl TryFrom<sullygnome::GamesResponse> for StreamerModel {
         });
         let ow_percent = ow_time as f64 / total_time_sec as f64;
         let variety_percent = 1.0 - ow_percent;
+
+        let days_until_now = streamcounter::days_in_year();
+        let days_streamed = streamcounter::count(&streams.data);
+        let days_ditched = days_until_now - days_streamed;
         Ok(Self {
-            games: value
+            games: games
                 .data
                 .into_iter()
                 .map(GameModel::try_from)
@@ -47,6 +54,10 @@ impl TryFrom<sullygnome::GamesResponse> for StreamerModel {
             ow_percent,
             variety_percent,
             are_we_variety: variety_percent >= 0.3,
+
+            days_ditched,
+            days_until_now,
+            percent_ditched: (days_ditched as f64) / (days_until_now as f64),
         })
     }
 }
@@ -62,7 +73,7 @@ pub struct GameModel {
 impl TryFrom<sullygnome::GameData> for GameModel {
     type Error = anyhow::Error;
 
-    fn try_from(value: GameData) -> Result<Self, Self::Error> {
+    fn try_from(value: sullygnome::GameData) -> Result<Self, Self::Error> {
         let (category, category_image) =
             extract_category_and_url(&value.gamesplayed).ok_or_else(|| anyhow!("bad games"))?;
         Ok(Self {
