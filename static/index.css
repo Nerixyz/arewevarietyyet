@@ -81,6 +81,8 @@ main {
 
 .ditch-stats {
     margin-top: 3rem;
+    display: flex;
+    flex-direction: column;
 }
 
 .distribution {
@@ -115,7 +117,7 @@ a {
     color: var(--colored-text);
 }
 
-.clip-link >img {
+.clip-link > img {
     height: 1.2rem;
     margin-right: 0.2rem;
 }
@@ -157,6 +159,26 @@ a {
 .category-tooltip img {
     width: 6rem;
     border-radius: 0.5rem;
+}
+
+.ditch-distribution {
+    width: 100%;
+    display: flex;
+    overflow: hidden;
+    border-radius: 5px;
+}
+
+.ditch-distribution div {
+    height: 10px;
+}
+
+.ditch-distribution .streams {
+    flex-grow: 1;
+    background-color: var(--cat1);
+}
+
+.ditch-distribution .ditches {
+    background-color: var(--cat2);
 }
 
 footer {
