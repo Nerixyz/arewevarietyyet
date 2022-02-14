@@ -1,4 +1,4 @@
-use crate::{streamcounter, sullygnome};
+use crate::{streamcounter, streamcounter::LongestDitch, sullygnome};
 use anyhow::anyhow;
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -20,6 +20,8 @@ pub struct StreamerModel {
     pub days_ditched: usize,
     pub days_until_now: usize,
     pub percent_ditched: f64,
+
+    pub longest_ditch: streamcounter::LongestDitch,
 }
 
 impl TryFrom<(sullygnome::GamesResponse, sullygnome::StreamsResponse)> for StreamerModel {
@@ -58,6 +60,7 @@ impl TryFrom<(sullygnome::GamesResponse, sullygnome::StreamsResponse)> for Strea
             days_ditched,
             days_until_now,
             percent_ditched: (days_ditched as f64) / (days_until_now as f64),
+            longest_ditch: LongestDitch::calculate(&streams.data),
         })
     }
 }

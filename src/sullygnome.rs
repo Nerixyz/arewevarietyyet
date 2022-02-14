@@ -1,5 +1,5 @@
 use anyhow::Result as AnyResult;
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Duration, Utc};
 use lazy_static::lazy_static;
 use reqwest::{
     header::{self, HeaderMap, HeaderValue},
@@ -43,6 +43,25 @@ pub struct StreamsResponse {
 #[serde(rename_all = "camelCase")]
 pub struct StreamData {
     pub start_date_time: DateTime<Utc>,
+    pub length: i64,
+}
+
+impl StreamData {
+    pub fn end_date_time(&self) -> DateTime<Utc> {
+        self.start_date_time + Duration::minutes(self.length)
+    }
+
+    pub fn duration_to(&self, other: &Self) -> Duration {
+        if self.start_date_time > other.start_date_time {
+            return other.duration_to(self);
+        }
+        // self <= other
+        other.start_date_time - self.end_date_time()
+    }
+
+    pub fn duration_to_now(&self) -> Duration {
+        Utc::now() - self.end_date_time()
+    }
 }
 
 const GAMES_REQUEST_URL: &str =
