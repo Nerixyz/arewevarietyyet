@@ -1,7 +1,7 @@
 use crate::data_actor::{DataActor, GetData};
 use actix::{Actor, Recipient};
 use actix_files::Files;
-use actix_web::{error, http::header::ContentType, web, App, HttpResponse, HttpServer};
+use actix_web::{error, get, http::header::ContentType, web, App, HttpResponse, HttpServer};
 use handlebars::Handlebars;
 use std::io;
 
@@ -28,6 +28,30 @@ async fn index(
         .body(rendered))
 }
 
+#[get("/custom-api")]
+async fn custom_api(
+    actor: web::Data<Recipient<GetData>>,
+) -> Result<HttpResponse, actix_web::Error> {
+    let model = actor
+        .send(GetData)
+        .await
+        .map_err(|_| actix_web::error::ErrorTooManyRequests("🤯 Actor mailbox closed or we timed out."))?
+        .map_err(|e| actix_web::error::ErrorInternalServerError(format!("🚨 API failed: {}", e)))?;
+    Ok(HttpResponse::Ok()
+        .insert_header(ContentType::plaintext())
+        .body(format!(
+            "{prefix} {p_variety}% variety this year. {n_days_ditched}/{n_days} days ({p_days_ditched}%) ditched.",
+            prefix = match model.are_we_variety {
+                true => "Yes,",
+                false => "No, we only had",
+            },
+            p_variety = (model.variety_percent * 100.0).round(),
+            n_days_ditched = model.days_ditched,
+            n_days = model.days_until_now,
+            p_days_ditched = (model.percent_ditched * 100.0).round()
+        )))
+}
+
 #[actix_web::main]
 async fn main() -> io::Result<()> {
     let actor = DataActor::start_default();
@@ -45,6 +69,7 @@ async fn main() -> io::Result<()> {
         App::new()
             .app_data(actor.clone())
             .app_data(handlebars.clone())
+            .service(web::scope("/api").service(custom_api))
             .service(
                 Files::new("/", "static")
                     .index_file("this_file_doesnt_exist_but_we_dont_need_it")
