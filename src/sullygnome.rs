@@ -12,7 +12,11 @@ lazy_static! {
         let mut headers = HeaderMap::new();
         headers.insert(
             header::USER_AGENT,
-            HeaderValue::from_static("arewevarietyyet/0.1 - github.com/nerixyz/arewevarietyyet"),
+            HeaderValue::from_static(concat!(
+                "arewevarietyyet/",
+                env!("CARGO_PKG_VERSION"),
+                " - github.com/nerixyz/arewevarietyyet"
+            )),
         );
 
         Client::builder().default_headers(headers).build().unwrap()
@@ -64,24 +68,18 @@ impl StreamData {
     }
 }
 
-const GAMES_REQUEST_URL: &str =
-    "https://sullygnome.com/api/tables/channeltables/games/2022/3505649/%20/1/2/desc/0/1000";
-
-const STREAMS_REQUEST_URL: &str =
-    "https://sullygnome.com/api/tables/channeltables/streams/2022/3505649/%20/1/1/desc/0/1000";
-
-pub async fn get_games() -> AnyResult<GamesResponse> {
+pub async fn get_games(year: i32) -> AnyResult<GamesResponse> {
     Ok(SULLYGNOME_CLIENT
-        .get(GAMES_REQUEST_URL)
+        .get(format!("https://sullygnome.com/api/tables/channeltables/games/{year}/3505649/%20/1/2/desc/0/1000"))
         .send()
         .await?
         .json()
         .await?)
 }
 
-pub async fn get_streams() -> AnyResult<StreamsResponse> {
+pub async fn get_streams(year: i32) -> AnyResult<StreamsResponse> {
     Ok(SULLYGNOME_CLIENT
-        .get(STREAMS_REQUEST_URL)
+        .get(format!("https://sullygnome.com/api/tables/channeltables/streams/{year}/3505649/%20/1/1/desc/0/1000"))
         .send()
         .await?
         .json()

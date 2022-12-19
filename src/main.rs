@@ -1,4 +1,7 @@
-use crate::data_actor::{DataActor, GetData};
+use crate::{
+    data_actor::{DataActor, GetData},
+    model::Year,
+};
 use actix::{Actor, Recipient};
 use actix_files::Files;
 use actix_web::{error, get, http::header::ContentType, web, App, HttpResponse, HttpServer};
@@ -11,21 +14,43 @@ mod model;
 mod streamcounter;
 mod sullygnome;
 
+async fn render_template(
+    actor: web::Data<Recipient<GetData>>,
+    handlebars: web::Data<Handlebars<'_>>,
+    year: Year,
+) -> Result<HttpResponse, actix_web::Error> {
+    let model = actor
+        .send(GetData(year))
+        .await
+        .map_err(error::ErrorTooManyRequests)?
+        .map_err(error::ErrorInternalServerError)?;
+    let rendered = handlebars
+        .render(
+            match year {
+                Year::Current => "index",
+                Year::Last => "last-year",
+            },
+            &*model,
+        )
+        .map_err(error::ErrorInternalServerError)?;
+    Ok(HttpResponse::Ok()
+        .insert_header(ContentType::html())
+        .body(rendered))
+}
+
 async fn index(
     actor: web::Data<Recipient<GetData>>,
     handlebars: web::Data<Handlebars<'_>>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    let model = actor
-        .send(GetData)
-        .await
-        .map_err(|e| error::ErrorTooManyRequests(e))?
-        .map_err(|e| error::ErrorInternalServerError(e))?;
-    let rendered = handlebars
-        .render("index", &*model)
-        .map_err(|e| error::ErrorInternalServerError(e))?;
-    Ok(HttpResponse::Ok()
-        .insert_header(ContentType::html())
-        .body(rendered))
+    render_template(actor, handlebars, Year::Current).await
+}
+
+#[get("/last-year")]
+async fn last_year(
+    actor: web::Data<Recipient<GetData>>,
+    handlebars: web::Data<Handlebars<'_>>,
+) -> Result<HttpResponse, actix_web::Error> {
+    render_template(actor, handlebars, Year::Last).await
 }
 
 #[get("/custom-api")]
@@ -33,10 +58,12 @@ async fn custom_api(
     actor: web::Data<Recipient<GetData>>,
 ) -> Result<HttpResponse, actix_web::Error> {
     let model = actor
-        .send(GetData)
+        .send(GetData(Year::Current))
         .await
-        .map_err(|_| actix_web::error::ErrorTooManyRequests("🤯 Actor mailbox closed or we timed out."))?
-        .map_err(|e| actix_web::error::ErrorInternalServerError(format!("🚨 API failed: {}", e)))?;
+        .map_err(|_| {
+            actix_web::error::ErrorTooManyRequests("🤯 Actor mailbox closed or we timed out.")
+        })?
+        .map_err(|e| actix_web::error::ErrorInternalServerError(format!("🚨 API failed: {e}")))?;
     Ok(HttpResponse::Ok()
         .insert_header(ContentType::plaintext())
         .body(format!(
@@ -70,6 +97,7 @@ async fn main() -> io::Result<()> {
             .app_data(actor.clone())
             .app_data(handlebars.clone())
             .service(web::scope("/api").service(custom_api))
+            .service(last_year)
             .service(
                 Files::new("/", "static")
                     .index_file("this_file_doesnt_exist_but_we_dont_need_it")

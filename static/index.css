@@ -51,6 +51,9 @@ header {
     margin-top: 3rem;
     font-size: larger;
     font-style: italic;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
 }
 
 h1 {

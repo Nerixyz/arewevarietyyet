@@ -1,5 +1,6 @@
 use crate::{streamcounter, streamcounter::LongestDitch, sullygnome};
-use anyhow::anyhow;
+use anyhow::{anyhow, Result};
+use chrono::{Datelike, Utc};
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde::Serialize;
@@ -8,11 +9,27 @@ lazy_static! {
     static ref GAME_REGEX: Regex = Regex::new("^([^|]+)\\|(?:[^|]+)\\|(.+)$").unwrap();
 }
 
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub enum Year {
+    Current,
+    Last,
+}
+
+impl Year {
+    pub fn days_till_today(&self) -> usize {
+        match self {
+            Year::Current => streamcounter::days_in_current_year(),
+            Year::Last => streamcounter::days_in_last_year(),
+        }
+    }
+}
+
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct StreamerModel {
     pub games: Vec<GameModel>,
     pub total_time_min: u64,
+    pub at_least_one_stream: bool,
     pub variety_percent: f64,
     pub ow_percent: f64,
     pub are_we_variety: bool,
@@ -21,15 +38,17 @@ pub struct StreamerModel {
     pub days_until_now: usize,
     pub percent_ditched: f64,
 
-    pub longest_ditch: streamcounter::LongestDitch,
+    pub year: i32,
+
+    pub longest_ditch: LongestDitch,
 }
 
-impl TryFrom<(sullygnome::GamesResponse, sullygnome::StreamsResponse)> for StreamerModel {
-    type Error = anyhow::Error;
-
-    fn try_from(
-        (games, streams): (sullygnome::GamesResponse, sullygnome::StreamsResponse),
-    ) -> Result<Self, Self::Error> {
+impl StreamerModel {
+    pub fn create(
+        year: Year,
+        games: sullygnome::GamesResponse,
+        streams: sullygnome::StreamsResponse,
+    ) -> Result<Self> {
         let (total_time_sec, ow_time) = games.data.iter().fold((0, 0), |(total, ow), item| {
             (
                 total + item.streamtime,
@@ -40,27 +59,43 @@ impl TryFrom<(sullygnome::GamesResponse, sullygnome::StreamsResponse)> for Strea
                 },
             )
         });
-        let ow_percent = ow_time as f64 / total_time_sec as f64;
-        let variety_percent = 1.0 - ow_percent;
+        let mut ow_percent = ow_time as f64 / total_time_sec as f64;
+        let mut variety_percent = 1.0 - ow_percent;
+        if ow_percent.is_nan() {
+            ow_percent = 0.0;
+            variety_percent = 0.0;
+        }
 
-        let days_until_now = streamcounter::days_in_year();
+        let days_until_now = year.days_till_today();
         let days_streamed = streamcounter::count(&streams.data);
         let days_ditched = days_until_now - days_streamed;
+        let mut percent_ditched = days_ditched as f64 / days_until_now as f64;
+        if percent_ditched.is_nan() {
+            percent_ditched = 1.0;
+        }
+
         Ok(Self {
             games: games
                 .data
                 .into_iter()
                 .map(GameModel::try_from)
-                .collect::<Result<Vec<_>, Self::Error>>()?,
+                .collect::<Result<Vec<_>>>()?,
             total_time_min: total_time_sec,
+            at_least_one_stream: total_time_sec > 0,
             ow_percent,
             variety_percent,
             are_we_variety: variety_percent >= 0.3,
 
             days_ditched,
             days_until_now,
-            percent_ditched: (days_ditched as f64) / (days_until_now as f64),
-            longest_ditch: LongestDitch::calculate(&streams.data),
+            percent_ditched,
+
+            year: match year {
+                Year::Current => Utc::now().year(),
+                Year::Last => Utc::now().year() - 1,
+            },
+
+            longest_ditch: LongestDitch::calculate(year, &streams.data),
         })
     }
 }

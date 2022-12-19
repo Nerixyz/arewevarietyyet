@@ -1,13 +1,14 @@
 [package]
 name = "arewevarietyyet"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 actix-web = "4.0"
-handlebars = { version = "4.2", features = ["dir_source"] }
+# See https://github.com/sunng87/handlebars-rust/issues/549
+handlebars = { version = "=4.2.2", features = ["dir_source"] }
 reqwest = { version = "0.11", features = ["native-tls", "json"] }
 lazy_static = "1"
 actix-files = "0.6"

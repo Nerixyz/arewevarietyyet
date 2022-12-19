@@ -16,10 +16,10 @@
           rel="stylesheet">
 </head>
 <body class="{{#if areWeVariety}}yes{{else}}no{{/if}}">
-<header>Are We Variety Yet?</header>
+<header><s>Are We Variety Yet?</s><br>Were We Variety in {{year}}?</header>
 <main>
     <h1>{{#if areWeVariety}}Yes{{else}}No{{/if}}</h1>
-    <h4>We are {{round-percent varietyPercent}}% variety.</h4>
+    <h4>We were {{round-percent varietyPercent}}% variety.</h4>
     <div class="details">
         {{#if atLeastOneStream}}
             <h3>Distribution:</h3>
@@ -65,7 +65,7 @@
         <h6 class="ditch-from">From <span class="local-dt" data-dt="{{longestDitch.from}}">?</span></h6>
     </div>
     <div class="other-year">
-        <a href="/last-year">Go to last year</a>
+        <a href="/">Go to current year</a>
     </div>
 </main>
 <footer>
@@ -91,48 +91,4 @@
         }
     })();
 </script>
-{{#if (eq longestDitch.type "current")}}
-    <script>
-        function animationInterval(ms, callback) {
-            const start = document.timeline ? document.timeline.currentTime : performance.now();
-
-            function frame(time) {
-                callback(time);
-                scheduleFrame(time);
-            }
-
-            function scheduleFrame(time) {
-                const elapsed = time - start;
-                const roundedElapsed = Math.round(elapsed / ms) * ms;
-                const targetNext = start + roundedElapsed + ms;
-                const delay = targetNext - performance.now();
-                setTimeout(() => requestAnimationFrame(frame), delay);
-            }
-
-            scheduleFrame(start);
-        }
-
-        (() => {
-            const el = document.getElementById('ditchDuration');
-            const start = new Date(el.dataset.dt);
-            const formatDuration = (duration) => {
-                const days = (duration / 86400000) | 0;
-                duration -= days * 86400000;
-                const hours = (duration / 3600000) | 0;
-                duration -= hours * 3600000;
-                const minutes = (duration / 60000) | 0;
-                duration -= minutes * 60000;
-                const seconds = (duration / 1000) | 0;
-
-                const plural = n => n === 1 ? '' : 's';
-                const component = (n, unit) => n === 0 ? '' : `${n}${unit}`;
-
-                return `${component(days, 'day' + plural(days))} ${component(hours, 'h')} ${component(minutes, 'min')} ${component(seconds, 's')}`.replaceAll(/ +/g, ' ').trim();
-            }
-            const intervalFn = () => el.textContent = formatDuration(Date.now() - start);
-            animationInterval(1000, intervalFn);
-            intervalFn();
-        })();
-    </script>
-{{/if}}
 </html>
