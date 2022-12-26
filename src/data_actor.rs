@@ -4,8 +4,8 @@ use crate::{
     sullygnome,
 };
 use actix::{
-    fut::ready, Actor, ActorFutureExt, AsyncContext, Context, Handler, Message, ResponseActFuture,
-    WrapFuture,
+    fut::ready, Actor, ActorFuture, ActorFutureExt, AsyncContext, Context, Handler, Message,
+    ResponseActFuture, WrapFuture,
 };
 use chrono::{Datelike, Utc};
 use futures::future;
@@ -19,6 +19,7 @@ const CACHE_TIME: Duration = Duration::from_secs(10 * 60);
 pub struct DataActor {
     current_year: Option<(Instant, Arc<StreamerModel>)>,
     last_year: Arc<StreamerModel>,
+    current_last_year: i32,
 }
 
 impl Default for DataActor {
@@ -38,6 +39,7 @@ impl Default for DataActor {
                 year: 0,
                 longest_ditch: LongestDitch::Current { from: Utc::now() },
             }),
+            current_last_year: Utc::now().year() - 1,
         }
     }
 }
@@ -56,10 +58,10 @@ impl DataActor {
     fn put_last_response(
         &mut self,
         response: anyhow::Result<(sullygnome::GamesResponse, sullygnome::StreamsResponse)>,
-    ) -> anyhow::Result<()> {
+    ) -> <GetData as Message>::Result {
         let (games, streams) = response?;
         self.last_year = Arc::new(StreamerModel::create(Year::Last, games, streams)?);
-        Ok(())
+        Ok(self.last_year.clone())
     }
 
     fn try_get_cached(&self) -> Option<<GetData as Message>::Result> {
@@ -70,26 +72,28 @@ impl DataActor {
             Some(Ok(model.clone()))
         }
     }
+
+    fn get_last_year(&self) -> impl ActorFuture<Self, Output = <GetData as Message>::Result> {
+        let last_year = self.current_last_year;
+
+        future::try_join(
+            sullygnome::get_games(last_year),
+            sullygnome::get_streams(last_year),
+        )
+        .into_actor(self)
+        .map(|res, this, _| this.put_last_response(res))
+    }
 }
 
 impl Actor for DataActor {
     type Context = Context<Self>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
-        let last_year = Utc::now().year() - 1;
-
-        ctx.spawn(
-            future::try_join(
-                sullygnome::get_games(last_year),
-                sullygnome::get_streams(last_year),
-            )
-            .into_actor(self)
-            .map(|res, this, _| {
-                if let Err(e) = this.put_last_response(res) {
-                    eprintln!("Failed to get last year's data: {e}");
-                }
-            }),
-        );
+        ctx.spawn(self.get_last_year().map(|res, _this, _| {
+            if let Err(e) = res {
+                eprintln!("Failed to get last year's data: {e}");
+            }
+        }));
     }
 }
 
@@ -118,7 +122,16 @@ impl Handler<GetData> for DataActor {
                     )
                 }
             },
-            Year::Last => Box::pin(ready(Ok(self.last_year.clone()))),
+            Year::Last => {
+                let current_year = Utc::now().year();
+                if self.current_last_year + 1 == current_year {
+                    Box::pin(ready(Ok(self.last_year.clone())))
+                } else {
+                    // the year changed while we were running
+                    self.current_last_year = current_year - 1;
+                    Box::pin(self.get_last_year())
+                }
+            }
         }
     }
 }
