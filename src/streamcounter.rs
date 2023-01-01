@@ -92,7 +92,7 @@ impl LongestDitch {
                 // it's sorted from newest to oldest
                 let last = match streams.first() {
                     Some(last) => last,
-                    None => return Self::current(Utc::now()),
+                    None => return Self::current(first_day_in_year(Utc::now().year())),
                 };
 
                 match old_ditch {
