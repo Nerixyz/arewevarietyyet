@@ -1,227 +1,231 @@
 :root {
-    --slate900: #0F172A;
-    --slate800: #1E293B;
-    --slate400: #94A3B8;
-    --slate200: #E2E8F0;
-    --slate100: #F1F5F9;
+  --slate900: #0f172a;
+  --slate800: #1e293b;
+  --slate400: #94a3b8;
+  --slate200: #e2e8f0;
+  --slate100: #f1f5f9;
 
-    --red600: #DC2626;
+  --red600: #dc2626;
 
-    --green600: #16A34A;
+  --green600: #16a34a;
 
-    --no-cat1: var(--red600);
-    --no-cat2: #7F1D1D;
+  --no-cat1: var(--red600);
+  --no-cat2: #7f1d1d;
 
-    --yes-cat1: var(--green600);
-    --yes-cat2: #14532D;
+  --yes-cat1: var(--green600);
+  --yes-cat2: #14532d;
 
-    --text-color: var(--slate200);
+  --text-color: var(--slate200);
 }
 
 .yes {
-    --cat1: var(--yes-cat1);
-    --cat2: var(--yes-cat2);
-    --colored-text: var(--green600);
+  --cat1: var(--yes-cat1);
+  --cat2: var(--yes-cat2);
+  --colored-text: var(--green600);
 }
 
 .no {
-    --cat1: var(--no-cat1);
-    --cat2: var(--no-cat2);
-    --colored-text: var(--red600);
+  --cat1: var(--no-cat1);
+  --cat2: var(--no-cat2);
+  --colored-text: var(--red600);
 }
 
 html {
-    box-sizing: border-box;
-    font-family: 'Open Sans', sans-serif;
+  box-sizing: border-box;
+  font-family: 'Open Sans', sans-serif;
 }
 
-*, *:before, *:after {
-    box-sizing: inherit;
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
 }
 
 body {
-    background-color: #0F172A;
-    color: var(--text-color);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  background-color: #0f172a;
+  color: var(--text-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 header {
-    margin-top: 3rem;
-    font-size: larger;
-    font-style: italic;
-    display: flex;
-    align-items: center;
-    flex-direction: column;
+  margin-top: 3rem;
+  font-size: larger;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
 }
 
 h1 {
-    font-size: 12rem;
-    margin-top: 0;
-    margin-bottom: 2rem;
-    text-align: center;
-    color: var(--colored-text);
+  font-size: 12rem;
+  margin-top: 0;
+  margin-bottom: 2rem;
+  text-align: center;
+  color: var(--colored-text);
 }
 
 h4 {
-    font-size: 1.1rem;
-    margin-top: 0;
-    margin-bottom: 1rem;
-    text-align: center;
+  font-size: 1.1rem;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  text-align: center;
 }
 
 .less-important {
-    color: var(--slate400);
+  color: var(--slate400);
 }
 
 main {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .ditch-stats {
-    margin-top: 3rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  margin-top: 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .distribution {
-    width: 40vw;
-    display: flex;
-    margin-bottom: 3rem;
+  width: 40vw;
+  display: flex;
+  margin-bottom: 3rem;
 }
 
 @media (max-aspect-ratio: 1/1) {
-    .distribution {
-        width: 100%;
-    }
+  .distribution {
+    width: 100%;
+  }
 }
 
 .clip {
-    margin-top: 1rem;
-    display: flex;
-    justify-content: center;
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
 }
 
 .quote {
-    font-style: italic;
-    font-weight: 300;
-    margin-right: 0.75rem;
+  font-style: italic;
+  font-weight: 300;
+  margin-right: 0.75rem;
 }
 
 .redacted {
-    text-decoration: line-through;
+  text-decoration: line-through;
 }
 
 a {
-    color: var(--colored-text);
+  color: var(--colored-text);
 }
 
 .clip-link > img {
-    height: 1.2rem;
-    margin-right: 0.2rem;
+  height: 1.2rem;
+  margin-right: 0.2rem;
 }
 
 .category {
-    height: 20px;
-    position: relative;
-    cursor: pointer;
+  height: 20px;
+  position: relative;
+  cursor: pointer;
 }
 
 .category-tooltip {
-    transform: scale(0);
-    opacity: 0;
-    transition: transform ease-out 100ms, opacity ease-out 100ms;
-    transform-origin: top left;
-    display: flex;
-    gap: 1rem;
-    padding: 1rem;
-    background-color: var(--slate800);
-    border-radius: 0.75rem;
-    margin: 0.5rem;
-    box-shadow: 2px 4px 10px 0 #0005;
-    position: absolute;
-    top: 100%;
+  transform: scale(0);
+  opacity: 0;
+  transition:
+    transform ease-out 100ms,
+    opacity ease-out 100ms;
+  transform-origin: top left;
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: var(--slate800);
+  border-radius: 0.75rem;
+  margin: 0.5rem;
+  box-shadow: 2px 4px 10px 0 #0005;
+  position: absolute;
+  top: 100%;
 }
 
 .category:hover .category-tooltip {
-    transform: scale(1);
-    opacity: 1;
+  transform: scale(1);
+  opacity: 1;
 }
 
 .category-details {
-    display: flex;
-    flex-direction: column;
-    white-space: nowrap;
-    justify-content: center;
+  display: flex;
+  flex-direction: column;
+  white-space: nowrap;
+  justify-content: center;
 }
 
 .category-tooltip img {
-    width: 6rem;
-    border-radius: 0.5rem;
+  width: 6rem;
+  border-radius: 0.5rem;
 }
 
 .ditch-distribution {
-    width: 100%;
-    display: flex;
-    overflow: hidden;
-    border-radius: 5px;
+  width: 100%;
+  display: flex;
+  overflow: hidden;
+  border-radius: 5px;
 }
 
 .ditch-distribution div {
-    height: 10px;
+  height: 10px;
 }
 
 .ditch-distribution .streams {
-    flex-grow: 1;
-    background-color: var(--cat1);
+  flex-grow: 1;
+  background-color: var(--cat1);
 }
 
 .ditch-distribution .ditches {
-    background-color: var(--cat2);
+  background-color: var(--cat2);
 }
 
 .ditch-stats h5 {
-    margin-top: 1.5rem;
-    margin-bottom: 0.4rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.4rem;
 }
 
 .ditch-duration {
-    margin-top: 0;
-    margin-bottom: 0.2rem;
-    font-weight: normal;
-    font-size: 1rem;
+  margin-top: 0;
+  margin-bottom: 0.2rem;
+  font-weight: normal;
+  font-size: 1rem;
 }
 
 .ditch-from {
-    margin-top: 0.2rem;
-    font-weight: normal;
+  margin-top: 0.2rem;
+  font-weight: normal;
 }
 
 footer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 7rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 7rem;
 }
 
 .credits {
-    font-size: 0.75rem;
+  font-size: 0.75rem;
 }
 
 .github-icon {
-    width: 3rem;
-    color: var(--slate400);
+  width: 3rem;
+  color: var(--slate400);
 }
 
-.category:nth-child(2n+1) {
-    background-color: var(--cat1);
+.category:nth-child(2n + 1) {
+  background-color: var(--cat1);
 }
 
-.category:nth-child(2n+2) {
-    background-color: var(--cat2);
+.category:nth-child(2n + 2) {
+  background-color: var(--cat2);
 }
