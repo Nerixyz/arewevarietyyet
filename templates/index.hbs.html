@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -164,6 +164,8 @@
       const el = document.getElementById('ditchDuration');
       const start = new Date(el.dataset.dt);
       const formatDuration = (duration) => {
+        const months = (duration / 2630016000) | 0;
+        duration -= months * 2630016000;
         const days = (duration / 86400000) | 0;
         duration -= days * 86400000;
         const hours = (duration / 3600000) | 0;
@@ -175,12 +177,15 @@
         const plural = (n) => (n === 1 ? '' : 's');
         const component = (n, unit) => (n === 0 ? '' : `${n}${unit}`);
 
-        return `${component(days, 'day' + plural(days))} ${component(
-          hours,
-          'h',
-        )} ${component(minutes, 'min')} ${component(seconds, 's')}`
-          .replaceAll(/ +/g, ' ')
-          .trim();
+        return [
+          component(months, 'month' + plural(months)),
+          component(days, 'day' + plural(days)),
+          component(hours, 'h'),
+          component(minutes, 'min'),
+          component(seconds, 's'),
+        ]
+          .filter(Boolean)
+          .join(' ');
       };
       const intervalFn = () =>
         (el.textContent = formatDuration(Date.now() - start));
