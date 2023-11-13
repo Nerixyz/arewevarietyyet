@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 actix-web = "4.0"
-handlebars = { version = "4.4", features = ["dir_source"] }
+handlebars = { version = "4.5", features = ["dir_source"] }
 reqwest = { version = "0.11", features = ["native-tls", "json"] }
 lazy_static = "1"
 actix-files = "0.6"
@@ -16,7 +16,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 anyhow = "1.0"
 regex = "1.10"
-tokio = "1.33"
+tokio = "1.34"
 humantime = "2.1"
 chrono = { version = "0.4", features = ["serde"] }
 futures = "0.3"
