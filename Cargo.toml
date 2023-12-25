@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-actix-web = "4.0"
+actix-web = "4.4"
 handlebars = { version = "4.5", features = ["dir_source"] }
 reqwest = { version = "0.11", features = ["native-tls", "json"] }
 lazy_static = "1"
