@@ -5,7 +5,7 @@ use crate::{
 use actix::{Actor, Recipient};
 use actix_files::Files;
 use actix_web::{error, get, http::header::ContentType, web, App, HttpResponse, HttpServer};
-use handlebars::Handlebars;
+use handlebars::{DirectorySourceOptions, Handlebars};
 use std::io;
 
 mod data_actor;
@@ -85,7 +85,13 @@ async fn main() -> io::Result<()> {
     let actor = web::Data::new(actor.recipient::<GetData>());
     let mut handlebars = Handlebars::new();
     handlebars
-        .register_templates_directory(".hbs.html", "templates")
+        .register_templates_directory(
+            "templates",
+            DirectorySourceOptions {
+                tpl_extension: ".hbs.html".to_owned(),
+                ..Default::default()
+            },
+        )
         .unwrap();
     handlebars.register_helper("bar-width", Box::new(helpers::bar_width));
     handlebars.register_helper("humanize-min", Box::new(helpers::humanize_min));
