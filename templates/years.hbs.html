@@ -1,0 +1,10 @@
+<div class="years">
+  <div class="current-year">
+    <a href="/">Current year</a>
+  </div>
+  {{#each years}}
+  <div class="other-year">
+    <a href="/prev/{{this}}">{{this}}</a>
+  </div>
+  {{/each}}
+</div>

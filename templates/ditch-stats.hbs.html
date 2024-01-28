@@ -1,0 +1,21 @@
+<div class="ditch-stats">
+  <h4>
+    {{daysDitched}}<span class="less-important">/{{daysUntilNow}}</span>
+    days ditched
+    <span class="less-important">({{round-percent percentDitched}}%)</span>
+  </h4>
+  <div class="ditch-distribution">
+    <div class="streams"></div>
+    <div class="ditches" style="width: {{bar-width 1 percentDitched}}%"></div>
+  </div>
+  <h5>Longest ditch:</h5>
+  <h6 class="ditch-duration">
+    {{#if (eq longestDitch.type 'current')}}
+    <span id="ditchDuration" data-dt="{{longestDitch.from}}">?</span>{{else}}
+    {{longestDitch.duration}}{{/if}}
+  </h6>
+  <h6 class="ditch-from">
+    From
+    <span class="local-dt" data-dt="{{longestDitch.from}}">?</span>
+  </h6>
+</div>

@@ -12,14 +12,14 @@ lazy_static! {
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum Year {
     Current,
-    Last,
+    Last(i32),
 }
 
 impl Year {
-    pub fn days_till_today(&self) -> usize {
+    pub fn days_till_today(self) -> usize {
         match self {
             Year::Current => streamcounter::days_in_current_year(),
-            Year::Last => streamcounter::days_in_last_year(),
+            Year::Last(year) => streamcounter::days_in_last_year(year),
         }
     }
 }
@@ -92,7 +92,7 @@ impl StreamerModel {
 
             year: match year {
                 Year::Current => Utc::now().year(),
-                Year::Last => Utc::now().year() - 1,
+                Year::Last(year) => year,
             },
 
             longest_ditch: LongestDitch::calculate(year, &streams.data),

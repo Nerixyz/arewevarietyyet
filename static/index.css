@@ -32,7 +32,8 @@
 
 html {
   box-sizing: border-box;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'InterVariable', sans-serif;
+  font-optical-sizing: auto;
 }
 
 *,
@@ -137,9 +138,7 @@ a {
 .category-tooltip {
   transform: scale(0);
   opacity: 0;
-  transition:
-    transform ease-out 100ms,
-    opacity ease-out 100ms;
+  transition: transform ease-out 100ms, opacity ease-out 100ms;
   transform-origin: top left;
   display: flex;
   gap: 1rem;
@@ -228,4 +227,24 @@ footer {
 
 .category:nth-child(2n + 2) {
   background-color: var(--cat2);
+}
+
+.years {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.years > div {
+  position: relative;
+}
+
+.years > div:after {
+  content: '/';
+  color: #aaa;
+  position: absolute;
+  left: -0.75rem;
+  transform: translateX(-50%);
+}
+.years > div:first-child:after {
+  content: '';
 }

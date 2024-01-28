@@ -6,6 +6,8 @@ use actix::{Actor, Recipient};
 use actix_files::Files;
 use actix_web::{error, get, http::header::ContentType, web, App, HttpResponse, HttpServer};
 use handlebars::{DirectorySourceOptions, Handlebars};
+use model::StreamerModel;
+use serde::Serialize;
 use std::io;
 
 mod data_actor;
@@ -14,24 +16,33 @@ mod model;
 mod streamcounter;
 mod sullygnome;
 
+#[derive(Serialize)]
+struct TemplateContext<'a> {
+    streamer: &'a StreamerModel,
+    years: &'a Vec<i32>,
+    child: &'static str,
+}
+
 async fn render_template(
     actor: web::Data<Recipient<GetData>>,
     handlebars: web::Data<Handlebars<'_>>,
     year: Year,
 ) -> Result<HttpResponse, actix_web::Error> {
-    let model = actor
+    let (streamer, years) = actor
         .send(GetData(year))
         .await
         .map_err(error::ErrorTooManyRequests)?
         .map_err(error::ErrorInternalServerError)?;
+    let ctx = TemplateContext {
+        streamer: &streamer,
+        years: &years,
+        child: match year {
+            Year::Current => "this-year",
+            Year::Last(_) => "last-year",
+        },
+    };
     let rendered = handlebars
-        .render(
-            match year {
-                Year::Current => "index",
-                Year::Last => "last-year",
-            },
-            &*model,
-        )
+        .render("skeleton", &ctx)
         .map_err(error::ErrorInternalServerError)?;
     Ok(HttpResponse::Ok()
         .insert_header(ContentType::html())
@@ -45,19 +56,20 @@ async fn index(
     render_template(actor, handlebars, Year::Current).await
 }
 
-#[get("/last-year")]
+#[get("/prev/{year}")]
 async fn last_year(
     actor: web::Data<Recipient<GetData>>,
     handlebars: web::Data<Handlebars<'_>>,
+    path: web::Path<i32>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    render_template(actor, handlebars, Year::Last).await
+    render_template(actor, handlebars, Year::Last(path.into_inner())).await
 }
 
 #[get("/custom-api")]
 async fn custom_api(
     actor: web::Data<Recipient<GetData>>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    let model = actor
+    let (model, _) = actor
         .send(GetData(Year::Current))
         .await
         .map_err(|_| {

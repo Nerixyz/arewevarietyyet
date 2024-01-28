@@ -1,0 +1,63 @@
+<header>Are We Variety Yet?</header>
+<main>
+  <h1>{{#if streamer.areWeVariety}}Yes{{else}}No{{/if}}</h1>
+  <h4>We are {{round-percent streamer.varietyPercent}}% variety.</h4>
+  {{>details streamer}} {{>ditch-stats streamer}} {{>years}}
+</main>
+{{#if (eq streamer.longestDitch.type "current")}}
+<script>
+  function animationInterval(ms, callback) {
+    const start = document.timeline
+      ? document.timeline.currentTime
+      : performance.now();
+
+    function frame(time) {
+      callback(time);
+      scheduleFrame(time);
+    }
+
+    function scheduleFrame(time) {
+      const elapsed = time - start;
+      const roundedElapsed = Math.round(elapsed / ms) * ms;
+      const targetNext = start + roundedElapsed + ms;
+      const delay = targetNext - performance.now();
+      setTimeout(() => requestAnimationFrame(frame), delay);
+    }
+
+    scheduleFrame(start);
+  }
+
+  (() => {
+    const el = document.getElementById('ditchDuration');
+    const start = new Date(el.dataset.dt);
+    const formatDuration = (duration) => {
+      const months = (duration / 2630016000) | 0;
+      duration -= months * 2630016000;
+      const days = (duration / 86400000) | 0;
+      duration -= days * 86400000;
+      const hours = (duration / 3600000) | 0;
+      duration -= hours * 3600000;
+      const minutes = (duration / 60000) | 0;
+      duration -= minutes * 60000;
+      const seconds = (duration / 1000) | 0;
+
+      const plural = (n) => (n === 1 ? '' : 's');
+      const component = (n, unit) => (n === 0 ? '' : `${n}${unit}`);
+
+      return [
+        component(months, 'month' + plural(months)),
+        component(days, 'day' + plural(days)),
+        component(hours, 'h'),
+        component(minutes, 'min'),
+        component(seconds, 's'),
+      ]
+        .filter(Boolean)
+        .join(' ');
+    };
+    const intervalFn = () =>
+      (el.textContent = formatDuration(Date.now() - start));
+    animationInterval(1000, intervalFn);
+    intervalFn();
+  })();
+</script>
+{{/if}}

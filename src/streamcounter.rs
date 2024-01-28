@@ -55,8 +55,7 @@ pub fn days_in_current_year() -> usize {
     }
 }
 
-pub fn days_in_last_year() -> usize {
-    let year = Utc::now().year();
+pub fn days_in_last_year(year: i32) -> usize {
     let start = first_day_in_year(year - 1);
     let end = first_day_in_year(year);
     (end - start).num_days() as usize
@@ -104,11 +103,11 @@ impl LongestDitch {
                     _ => Self::current(last.end_date_time()),
                 }
             }
-            Year::Last => match old_ditch {
+            Year::Last(year) => match old_ditch {
                 Some(old_ditch) => Self::past(old_ditch),
                 // This shouldn't really happen, as there should be at least one stream.
                 None => Self::Past {
-                    from: first_day_in_year(Utc::now().year() - 1),
+                    from: first_day_in_year(year),
                     duration: "0".to_owned(),
                 },
             },

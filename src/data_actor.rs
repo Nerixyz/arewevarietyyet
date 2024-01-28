@@ -1,45 +1,37 @@
 use crate::{
     model::{StreamerModel, Year},
-    streamcounter::LongestDitch,
     sullygnome,
 };
 use actix::{
     fut::ready, Actor, ActorFuture, ActorFutureExt, AsyncContext, Context, Handler, Message,
     ResponseActFuture, WrapFuture,
 };
+use anyhow::anyhow;
 use chrono::{Datelike, Utc};
 use futures::future;
 use std::{
+    collections::HashMap,
     sync::Arc,
     time::{Duration, Instant},
 };
 
 const CACHE_TIME: Duration = Duration::from_secs(10 * 60);
+const FROM_YEAR: i32 = 2019;
 
 pub struct DataActor {
     current_year: Option<(Instant, Arc<StreamerModel>)>,
-    last_year: Arc<StreamerModel>,
-    current_last_year: i32,
+    prev_years: HashMap<i32, Arc<StreamerModel>>,
+    years_n: Arc<Vec<i32>>,
+    current_year_n: i32,
 }
 
 impl Default for DataActor {
     fn default() -> Self {
         Self {
             current_year: None,
-            last_year: Arc::new(StreamerModel {
-                games: vec![],
-                total_time_min: 0,
-                at_least_one_stream: false,
-                variety_percent: 0.0,
-                ow_percent: 0.0,
-                are_we_variety: false,
-                days_ditched: 0,
-                days_until_now: 0,
-                percent_ditched: 0.0,
-                year: 0,
-                longest_ditch: LongestDitch::Current { from: Utc::now() },
-            }),
-            current_last_year: Utc::now().year() - 1,
+            prev_years: HashMap::new(),
+            current_year_n: Utc::now().year(),
+            years_n: Arc::new(Vec::new()),
         }
     }
 }
@@ -52,16 +44,14 @@ impl DataActor {
         let (games, streams) = response?;
         let model = Arc::new(StreamerModel::create(Year::Current, games, streams)?);
         self.current_year = Some((Instant::now(), Arc::clone(&model)));
-        Ok(model)
+        Ok((model, self.years_n.clone()))
     }
 
-    fn put_last_response(
-        &mut self,
-        response: anyhow::Result<(sullygnome::GamesResponse, sullygnome::StreamsResponse)>,
-    ) -> <GetData as Message>::Result {
-        let (games, streams) = response?;
-        self.last_year = Arc::new(StreamerModel::create(Year::Last, games, streams)?);
-        Ok(self.last_year.clone())
+    fn put_last_response(&mut self, response: impl Iterator<Item = (i32, Arc<StreamerModel>)>) {
+        self.prev_years = HashMap::from_iter(response);
+        let mut vec = Vec::from_iter(self.prev_years.keys().copied());
+        vec.sort_by(|a, b| b.cmp(a));
+        self.years_n = Arc::new(vec);
     }
 
     fn try_get_cached(&self) -> Option<<GetData as Message>::Result> {
@@ -69,19 +59,31 @@ impl DataActor {
         if Instant::now() - *instant > CACHE_TIME {
             None
         } else {
-            Some(Ok(model.clone()))
+            Some(Ok((model.clone(), self.years_n.clone())))
         }
     }
 
-    fn get_last_year(&self) -> impl ActorFuture<Self, Output = <GetData as Message>::Result> {
-        let last_year = self.current_last_year;
+    fn get_last_year(
+        &self,
+        year: i32,
+    ) -> impl ActorFuture<Self, Output = <GetData as Message>::Result> {
+        let f = (FROM_YEAR.min(self.current_year_n)..self.current_year_n).map(|year| async move {
+            let (games, streams) =
+                future::try_join(sullygnome::get_games(year), sullygnome::get_streams(year))
+                    .await?;
+            StreamerModel::create(Year::Last(year), games, streams).map(|m| (year, Arc::new(m)))
+        });
 
-        future::try_join(
-            sullygnome::get_games(last_year),
-            sullygnome::get_streams(last_year),
-        )
-        .into_actor(self)
-        .map(|res, this, _| this.put_last_response(res))
+        future::join_all(f)
+            .into_actor(self)
+            .map(move |res, this, _| {
+                this.put_last_response(res.into_iter().filter_map(Result::ok));
+                this.prev_years
+                    .get(&year)
+                    .cloned()
+                    .map(|y| (y, this.years_n.clone()))
+                    .ok_or_else(|| anyhow!("No such year exists"))
+            })
     }
 }
 
@@ -89,10 +91,8 @@ impl Actor for DataActor {
     type Context = Context<Self>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
-        ctx.spawn(self.get_last_year().map(|res, _this, _| {
-            if let Err(e) = res {
-                eprintln!("Failed to get last year's data: {e}");
-            }
+        ctx.spawn(self.get_last_year(0).map(|_, this, _| {
+            eprintln!("Loaded {} last year(s)", this.prev_years.len());
         }));
     }
 }
@@ -100,7 +100,7 @@ impl Actor for DataActor {
 pub struct GetData(pub Year);
 
 impl Message for GetData {
-    type Result = anyhow::Result<Arc<StreamerModel>>;
+    type Result = anyhow::Result<(Arc<StreamerModel>, Arc<Vec<i32>>)>;
 }
 
 impl Handler<GetData> for DataActor {
@@ -122,14 +122,20 @@ impl Handler<GetData> for DataActor {
                     )
                 }
             },
-            Year::Last => {
+            Year::Last(year) => {
                 let current_year = Utc::now().year();
-                if self.current_last_year + 1 == current_year {
-                    Box::pin(ready(Ok(self.last_year.clone())))
+                if self.current_year_n == current_year {
+                    Box::pin(ready(
+                        self.prev_years
+                            .get(&year)
+                            .cloned()
+                            .map(|y| (y, self.years_n.clone()))
+                            .ok_or_else(|| anyhow!("This year isn't tracked")),
+                    ))
                 } else {
                     // the year changed while we were running
-                    self.current_last_year = current_year - 1;
-                    Box::pin(self.get_last_year())
+                    self.current_year_n = current_year;
+                    Box::pin(self.get_last_year(year))
                 }
             }
         }
