@@ -138,7 +138,8 @@ a {
 .category-tooltip {
   transform: scale(0);
   opacity: 0;
-  transition: transform cubic-bezier(0.76, 0.07, 1, 0.27) 100ms,
+  transition:
+    transform cubic-bezier(0.76, 0.07, 1, 0.27) 100ms,
     opacity cubic-bezier(0.76, 0.07, 1, 0.27) 100ms;
   transform-origin: top left;
   display: flex;
@@ -154,7 +155,8 @@ a {
 }
 
 .category:hover .category-tooltip {
-  transition: transform cubic-bezier(0.07, 0.76, 0.27, 1) 300ms,
+  transition:
+    transform cubic-bezier(0.07, 0.76, 0.27, 1) 300ms,
     opacity cubic-bezier(0.07, 0.76, 0.27, 1) 100ms;
   transform: scale(1);
   opacity: 1;
