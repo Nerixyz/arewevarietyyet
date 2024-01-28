@@ -43,7 +43,7 @@ html {
 }
 
 body {
-  background-color: #0f172a;
+  background-color: #0f0f0f;
   color: var(--text-color);
   display: flex;
   flex-direction: column;
@@ -138,20 +138,24 @@ a {
 .category-tooltip {
   transform: scale(0);
   opacity: 0;
-  transition: transform ease-out 100ms, opacity ease-out 100ms;
+  transition: transform cubic-bezier(0.76, 0.07, 1, 0.27) 100ms,
+    opacity cubic-bezier(0.76, 0.07, 1, 0.27) 100ms;
   transform-origin: top left;
   display: flex;
   gap: 1rem;
   padding: 1rem;
-  background-color: var(--slate800);
+  background-color: #191919;
   border-radius: 0.75rem;
   margin: 0.5rem;
-  box-shadow: 2px 4px 10px 0 #0005;
+  box-shadow: 0px 4px 20px 0 #0005;
   position: absolute;
   top: 100%;
+  border: 1px solid #fff2;
 }
 
 .category:hover .category-tooltip {
+  transition: transform cubic-bezier(0.07, 0.76, 0.27, 1) 300ms,
+    opacity cubic-bezier(0.07, 0.76, 0.27, 1) 100ms;
   transform: scale(1);
   opacity: 1;
 }
