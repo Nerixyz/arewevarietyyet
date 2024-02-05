@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-actix-web = "4.4"
+actix-web = "4.5"
 handlebars = { version = "5.1", features = ["dir_source"] }
 reqwest = { version = "0.11", features = ["native-tls", "json"] }
 lazy_static = "1"
@@ -16,7 +16,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 anyhow = "1.0"
 regex = "1.10"
-tokio = "1.35"
+tokio = "1.36"
 humantime = "2.1"
 chrono = { version = "0.4", features = ["serde"] }
 futures = "0.3"
