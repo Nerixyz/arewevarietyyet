@@ -1,5 +1,5 @@
-use crate::{model::Year, sullygnome::StreamData};
-use chrono::{DateTime, Datelike, Duration, NaiveDate, TimeZone, Utc};
+use crate::{datetime::first_day_in_year, model::Year, sullygnome::StreamData};
+use chrono::{DateTime, Datelike, Duration, Utc};
 use serde::Serialize;
 use std::ops::Add;
 
@@ -29,36 +29,6 @@ pub fn count(streams: &[StreamData]) -> usize {
             },
         )
         .0
-}
-
-fn first_day_in_year(year: i32) -> DateTime<Utc> {
-    Utc.from_utc_datetime(
-        &NaiveDate::from_ymd_opt(year, 1, 1)
-            .unwrap()
-            .and_hms_opt(0, 0, 0)
-            .unwrap(),
-    )
-}
-
-fn first_time_in_day(time_in_day: DateTime<Utc>) -> DateTime<Utc> {
-    Utc.from_utc_datetime(&time_in_day.date_naive().and_hms_opt(0, 0, 0).unwrap())
-}
-
-pub fn days_in_current_year() -> usize {
-    let today = first_time_in_day(Utc::now());
-    let tomorrow = today.add(Duration::days(1));
-    let start = first_day_in_year(today.year());
-    if start < tomorrow {
-        (tomorrow - start).num_days() as usize
-    } else {
-        0
-    }
-}
-
-pub fn days_in_last_year(year: i32) -> usize {
-    let start = first_day_in_year(year - 1);
-    let end = first_day_in_year(year);
-    (end - start).num_days() as usize
 }
 
 impl LongestDitch {

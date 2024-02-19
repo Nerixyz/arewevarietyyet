@@ -11,6 +11,7 @@ use serde::Serialize;
 use std::io;
 
 mod data_actor;
+mod datetime;
 mod helpers;
 mod model;
 mod streamcounter;
@@ -108,6 +109,7 @@ async fn main() -> io::Result<()> {
     handlebars.register_helper("bar-width", Box::new(helpers::bar_width));
     handlebars.register_helper("humanize-min", Box::new(helpers::humanize_min));
     handlebars.register_helper("round-percent", Box::new(helpers::rounded_percent));
+    handlebars.register_helper("format-hours", Box::new(helpers::format_hours));
     let handlebars = web::Data::new(handlebars);
 
     HttpServer::new(move || {

@@ -6,8 +6,10 @@
   --slate100: #f1f5f9;
 
   --red600: #dc2626;
+  --red-vars: 220, 38, 38;
 
   --green600: #16a34a;
+  --green-vars: 22, 163, 74;
 
   --no-cat1: var(--red600);
   --no-cat2: #7f1d1d;
@@ -22,12 +24,14 @@
   --cat1: var(--yes-cat1);
   --cat2: var(--yes-cat2);
   --colored-text: var(--green600);
+  --colored-vars: var(--green-vars);
 }
 
 .no {
   --cat1: var(--no-cat1);
   --cat2: var(--no-cat2);
   --colored-text: var(--red600);
+  --colored-vars: var(--red-vars);
 }
 
 html {
@@ -138,8 +142,7 @@ a {
 .category-tooltip {
   transform: scale(0);
   opacity: 0;
-  transition:
-    transform cubic-bezier(0.76, 0.07, 1, 0.27) 100ms,
+  transition: transform cubic-bezier(0.76, 0.07, 1, 0.27) 100ms,
     opacity cubic-bezier(0.76, 0.07, 1, 0.27) 100ms;
   transform-origin: top left;
   display: flex;
@@ -155,8 +158,7 @@ a {
 }
 
 .category:hover .category-tooltip {
-  transition:
-    transform cubic-bezier(0.07, 0.76, 0.27, 1) 300ms,
+  transition: transform cubic-bezier(0.07, 0.76, 0.27, 1) 300ms,
     opacity cubic-bezier(0.07, 0.76, 0.27, 1) 100ms;
   transform: scale(1);
   opacity: 1;
@@ -253,4 +255,55 @@ footer {
 }
 .years > div:first-child:after {
   content: '';
+}
+
+.ditch-days {
+  display: grid;
+  gap: 3px;
+  grid: repeat(7, 1fr) / auto-flow;
+  margin-bottom: 2.5rem;
+}
+
+.ditch-days :first-child {
+  grid-row: calc(var(--start-of-year) + 1);
+}
+
+.ditch-days > .ditch-day {
+  width: 12px;
+  height: 12px;
+  background: rgba(
+    var(--colored-vars),
+    calc(var(--day-time) / var(--max-time))
+  );
+  color: black;
+  border-radius: 3px;
+  border: 1px solid #ffffff10;
+  position: relative;
+}
+
+.ditch-days .ditch-day::after {
+  --base-transform: translate(-50%);
+  content: attr(data-formatted) ' (' attr(data-hours) ')';
+  display: block;
+  transform: var(--base-transform) scale(0);
+  transform-origin: top;
+  transition: transform cubic-bezier(0.76, 0.07, 1, 0.27) 100ms,
+    opacity cubic-bezier(0.76, 0.07, 1, 0.27) 100ms;
+  background: #191919;
+  position: absolute;
+  color: #eee;
+  padding: 0.5rem 1rem;
+  border: 1px solid #fff1;
+  border-radius: 5px;
+  box-shadow: 0 3px 8px 0 #0006;
+  text-wrap: nowrap;
+  z-index: 1;
+  top: 150%;
+  left: 100%;
+}
+
+.ditch-days .ditch-day:hover::after {
+  transform: var(--base-transform) scale(1);
+  transition: transform cubic-bezier(0.07, 0.76, 0.27, 1) 300ms,
+    opacity cubic-bezier(0.07, 0.76, 0.27, 1) 100ms;
 }

@@ -19,3 +19,41 @@
     <span class="local-dt" data-dt="{{longestDitch.from}}">?</span>
   </h6>
 </div>
+
+<div
+  class="ditch-days"
+  style="--max-time: {{maxStreamtime}}; --start-of-year: {{startOfYearOffset}}"
+  data-year="{{year}}"
+>
+  {{#each days}}
+  <div
+    class="ditch-day"
+    data-n="{{@index}}"
+    data-hours="{{format-hours this}}"
+    style="--day-time: {{this}}"
+  ></div>
+  {{/each}}
+</div>
+
+<script>
+  (() => {
+    const year =
+      parseInt(
+        document.querySelector('.ditch-days').getAttribute('data-year')
+      ) || 2000;
+    const formatter = new Intl.DateTimeFormat(undefined, {
+      dateStyle: 'medium',
+    });
+
+    for (const el of document.querySelectorAll('.ditch-days .ditch-day')) {
+      el.setAttribute(
+        'data-formatted',
+        formatter.format(
+          new Date(
+            Date.UTC(year, 0, (parseInt(el.getAttribute('data-n')) || 0) + 1)
+          )
+        )
+      );
+    }
+  })();
+</script>

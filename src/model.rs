@@ -1,4 +1,8 @@
-use crate::{streamcounter, streamcounter::LongestDitch, sullygnome};
+use crate::{
+    datetime::{days_in_current_year, days_in_year, first_day_in_year},
+    streamcounter::{self, LongestDitch},
+    sullygnome,
+};
 use anyhow::{anyhow, Result};
 use chrono::{Datelike, Utc};
 use lazy_static::lazy_static;
@@ -18,11 +22,20 @@ pub enum Year {
 impl Year {
     pub fn days_till_today(self) -> usize {
         match self {
-            Year::Current => streamcounter::days_in_current_year(),
-            Year::Last(year) => streamcounter::days_in_last_year(year),
+            Year::Current => days_in_current_year(),
+            Year::Last(year) => days_in_year(year),
+        }
+    }
+
+    pub fn number(self) -> i32 {
+        match self {
+            Year::Current => Utc::now().year(),
+            Year::Last(n) => n,
         }
     }
 }
+
+type Streamtime = Vec<f32>;
 
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -38,9 +51,28 @@ pub struct StreamerModel {
     pub days_until_now: usize,
     pub percent_ditched: f64,
 
+    pub days: Streamtime,
+    pub max_streamtime: f32,
+    pub start_of_year_offset: u32,
+
     pub year: i32,
 
     pub longest_ditch: LongestDitch,
+}
+
+fn fill_days(year: Year, streams: &sullygnome::StreamsResponse) -> (Streamtime, f32) {
+    let mut max = 0.1f32;
+    let mut streamtime = vec![0.0f32; days_in_year(year.number())];
+    for stream in &streams.data {
+        for (day, time) in stream.day_iter() {
+            streamtime[day as usize] += time;
+            if streamtime[day as usize] > max {
+                max = streamtime[day as usize];
+            }
+        }
+    }
+
+    (streamtime, max)
 }
 
 impl StreamerModel {
@@ -74,6 +106,8 @@ impl StreamerModel {
             percent_ditched = 1.0;
         }
 
+        let (days, max_streamtime) = fill_days(year, &streams);
+
         Ok(Self {
             games: games
                 .data
@@ -89,6 +123,12 @@ impl StreamerModel {
             days_ditched,
             days_until_now,
             percent_ditched,
+
+            days,
+            max_streamtime,
+            start_of_year_offset: first_day_in_year(year.number())
+                .weekday()
+                .num_days_from_monday(),
 
             year: match year {
                 Year::Current => Utc::now().year(),

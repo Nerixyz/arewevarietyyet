@@ -1,6 +1,6 @@
 use crate::{
     model::{StreamerModel, Year},
-    sullygnome,
+    sullygnome::{self, GamesResponse, StreamsResponse},
 };
 use actix::{
     fut::ready, Actor, ActorFuture, ActorFutureExt, AsyncContext, Context, Handler, Message,
@@ -16,7 +16,7 @@ use std::{
 };
 
 const CACHE_TIME: Duration = Duration::from_secs(10 * 60);
-const FROM_YEAR: i32 = 2019;
+const FROM_YEAR: i32 = 2018;
 
 pub struct DataActor {
     current_year: Option<(Instant, Arc<StreamerModel>)>,
@@ -68,9 +68,11 @@ impl DataActor {
         year: i32,
     ) -> impl ActorFuture<Self, Output = <GetData as Message>::Result> {
         let f = (FROM_YEAR.min(self.current_year_n)..self.current_year_n).map(|year| async move {
-            let (games, streams) =
-                future::try_join(sullygnome::get_games(year), sullygnome::get_streams(year))
-                    .await?;
+            let (games, streams) = future::try_join(
+                sullygnome::get_all_of::<GamesResponse>(year),
+                sullygnome::get_all_of::<StreamsResponse>(year),
+            )
+            .await?;
             StreamerModel::create(Year::Last(year), games, streams).map(|m| (year, Arc::new(m)))
         });
 
@@ -114,8 +116,8 @@ impl Handler<GetData> for DataActor {
                     let current_year = Utc::now().year();
                     Box::pin(
                         future::try_join(
-                            sullygnome::get_games(current_year),
-                            sullygnome::get_streams(current_year),
+                            sullygnome::get_all_of::<GamesResponse>(current_year),
+                            sullygnome::get_all_of::<StreamsResponse>(current_year),
                         )
                         .into_actor(self)
                         .map(|res, this, _| (this.put_current_response(res))),
