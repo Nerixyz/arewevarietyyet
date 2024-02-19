@@ -39,7 +39,7 @@
   (() => {
     const year =
       parseInt(
-        document.querySelector('.ditch-days').getAttribute('data-year')
+        document.querySelector('.ditch-days').getAttribute('data-year'),
       ) || 2000;
     const formatter = new Intl.DateTimeFormat(undefined, {
       dateStyle: 'medium',
@@ -50,9 +50,9 @@
         'data-formatted',
         formatter.format(
           new Date(
-            Date.UTC(year, 0, (parseInt(el.getAttribute('data-n')) || 0) + 1)
-          )
-        )
+            Date.UTC(year, 0, (parseInt(el.getAttribute('data-n')) || 0) + 1),
+          ),
+        ),
       );
     }
   })();
