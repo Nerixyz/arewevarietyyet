@@ -15,12 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@master
         with:
-          profile: minimal
-          override: true
+          components: rustfmt
           toolchain: nightly
-      - run: rustup component add rustfmt
       - name: rustfmt
         run: cargo fmt --check
 
