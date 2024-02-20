@@ -18,13 +18,19 @@ pub enum LongestDitch {
 pub fn count(streams: &[StreamData]) -> usize {
     streams
         .iter()
+        .flat_map(|it| {
+            [
+                it.end_date_time().date_naive(),
+                it.start_date_time.date_naive(),
+            ]
+        })
         .fold(
             (0, Utc::now().date_naive().add(Duration::days(1))),
             |(count, last), item| {
-                if last == item.start_date_time.date_naive() {
+                if last == item {
                     (count, last)
                 } else {
-                    (count + 1, item.start_date_time.date_naive())
+                    (count + 1, item)
                 }
             },
         )
