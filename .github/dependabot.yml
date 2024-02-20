@@ -10,3 +10,13 @@ updates:
       rust:
         patterns:
           - '*'
+  - package-ecosystem: github-actions
+    directory: '/'
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: 'deps(gh-actions)'
+    groups:
+      actions:
+        patterns:
+          - '*'
