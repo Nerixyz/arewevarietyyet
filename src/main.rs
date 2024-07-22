@@ -98,13 +98,11 @@ async fn main() -> io::Result<()> {
     let actor = web::Data::new(actor.recipient::<GetData>());
     let mut handlebars = Handlebars::new();
     handlebars
-        .register_templates_directory(
-            "templates",
-            DirectorySourceOptions {
-                tpl_extension: ".hbs.html".to_owned(),
-                ..Default::default()
-            },
-        )
+        .register_templates_directory("templates", {
+            let mut opts = DirectorySourceOptions::default();
+            opts.tpl_extension = ".hbs.html".to_owned();
+            opts
+        })
         .unwrap();
     handlebars.register_helper("bar-width", Box::new(helpers::bar_width));
     handlebars.register_helper("humanize-min", Box::new(helpers::humanize_min));
