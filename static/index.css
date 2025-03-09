@@ -303,6 +303,7 @@ footer {
   z-index: 1;
   top: 150%;
   left: 100%;
+  pointer-events: none;
 }
 
 .ditch-days .ditch-day:hover::after {
