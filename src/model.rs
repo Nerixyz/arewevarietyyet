@@ -81,17 +81,22 @@ impl StreamerModel {
         games: sullygnome::GamesResponse,
         streams: sullygnome::StreamsResponse,
     ) -> Result<Self> {
-        let (total_time_sec, ow_time) = games.data.iter().fold((0, 0), |(total, ow), item| {
+        let games = games
+            .data
+            .into_iter()
+            .map(GameModel::try_from)
+            .collect::<Result<Vec<_>>>()?;
+        let (total_time_min, longest) = games.iter().fold((0, 0), |(total, longest), item| {
             (
-                total + item.streamtime,
-                ow + if item.gamesplayed.starts_with("Overwatch") {
-                    item.streamtime
-                } else {
-                    0
-                },
+                total + item.time_streamed_min,
+                longest.max(item.time_streamed_min),
             )
         });
-        let mut ow_percent = ow_time as f64 / total_time_sec as f64;
+        let mut ow_percent = if total_time_min != 0 {
+            longest as f64 / total_time_min as f64
+        } else {
+            0.0f64
+        };
         let mut variety_percent = 1.0 - ow_percent;
         if ow_percent.is_nan() {
             ow_percent = 0.0;
@@ -109,13 +114,9 @@ impl StreamerModel {
         let (days, max_streamtime) = fill_days(year, &streams);
 
         Ok(Self {
-            games: games
-                .data
-                .into_iter()
-                .map(GameModel::try_from)
-                .collect::<Result<Vec<_>>>()?,
-            total_time_min: total_time_sec,
-            at_least_one_stream: total_time_sec > 0,
+            games,
+            total_time_min,
+            at_least_one_stream: total_time_min > 0,
             ow_percent,
             variety_percent,
             are_we_variety: variety_percent >= 0.3,
