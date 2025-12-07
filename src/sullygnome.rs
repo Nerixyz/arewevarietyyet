@@ -8,7 +8,7 @@ use reqwest::{
 };
 use serde::Deserialize;
 
-use crate::datetime::end_of_day;
+use crate::datetime::{end_of_day, first_day_in_year};
 
 lazy_static! {
     static ref SULLYGNOME_CLIENT: Client = {
@@ -49,6 +49,16 @@ pub struct StreamsResponse {
     pub data: Vec<StreamData>,
 }
 
+impl StreamsResponse {
+    pub fn clamp_dates(&mut self, year: i32) {
+        let start = first_day_in_year(year);
+        let end = first_day_in_year(year + 1) - chrono::Duration::seconds(1);
+        for d in &mut self.data {
+            d.clamp(&start, &end);
+        }
+    }
+}
+
 #[derive(Deserialize, Debug)]
 #[non_exhaustive]
 #[serde(rename_all = "camelCase")]
@@ -79,6 +89,20 @@ impl StreamData {
             start_date_time: self.start_date_time,
             end_date_time: self.end_date_time(),
         }
+    }
+
+    pub fn clamp(&mut self, start: &DateTime<Utc>, end: &DateTime<Utc>) {
+        if self.start_date_time < *start {
+            let diff = *start - self.start_date_time;
+            self.start_date_time = *start;
+            self.length -= diff.num_minutes();
+        }
+        let my_end = self.end_date_time();
+        if my_end > *end {
+            let diff = my_end - end;
+            self.length -= diff.num_minutes();
+        }
+        self.length = self.length.max(0);
     }
 }
 
@@ -188,10 +212,12 @@ pub async fn get_games(year: i32, offset: i32) -> AnyResult<GamesResponse> {
 }
 
 pub async fn get_streams(year: i32, offset: i32) -> AnyResult<StreamsResponse> {
-    Ok(SULLYGNOME_CLIENT
+    let mut res: StreamsResponse = SULLYGNOME_CLIENT
         .get(format!("https://sullygnome.com/api/tables/channeltables/streams/{year}/3505649/%20/1/1/desc/{offset}/100"))
         .send()
         .await?
         .json()
-        .await?)
+        .await?;
+    res.clamp_dates(year);
+    Ok(res)
 }
