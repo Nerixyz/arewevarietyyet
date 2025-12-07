@@ -120,7 +120,7 @@ impl Handler<GetData> for DataActor {
                             sullygnome::get_all_of::<StreamsResponse>(current_year),
                         )
                         .into_actor(self)
-                        .map(|res, this, _| (this.put_current_response(res))),
+                        .map(|res, this, _| this.put_current_response(res)),
                     )
                 }
             },
